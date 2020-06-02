@@ -94,14 +94,20 @@ namespace SplitPipes
 
     private void SplitPipe( Element segment, MEPSystem _system, UIDocument _activeDoc, ElementId _systemtype, PipeType _pipeType )
     {
-      ElementId levelId = segment.get_Parameter( BuiltInParameter.RBS_START_LEVEL_PARAM ).AsElementId();
+      ElementId levelId = segment.get_Parameter( 
+        BuiltInParameter.RBS_START_LEVEL_PARAM )
+          .AsElementId();
+
       // system.LevelId;
       ElementId systemtype = _system.GetTypeId();
 
-      Curve c1 = (segment.Location as LocationCurve).Curve;// selecting one pipe and taking its location.
+      // selecting one pipe and taking its location.
+      Curve c1 = (segment.Location as LocationCurve).Curve; 
 
       //Pipe diameter
-      double pipeDia = UnitUtils.ConvertFromInternalUnits( segment.get_Parameter( BuiltInParameter.RBS_PIPE_DIAMETER_PARAM ).AsDouble(), DisplayUnitType.DUT_MILLIMETERS );
+      double pipeDia = UnitUtils.ConvertFromInternalUnits( 
+        segment.get_Parameter( BuiltInParameter.RBS_PIPE_DIAMETER_PARAM ).AsDouble(), 
+        DisplayUnitType.DUT_MILLIMETERS );
 
       //Standard length
       double l = 6000;
@@ -132,18 +138,22 @@ namespace SplitPipes
       Pipe pipe = null;
       if( null != _pipeType )
       {
-        pipe = Pipe.Create( _activeDoc.Document, _pipeType.Id, levelId, startConn, newpoint );
+        pipe = Pipe.Create( _activeDoc.Document, 
+          _pipeType.Id, levelId, startConn, newpoint );
       }
 
       Connector conn1 = FindConnector( pipe, newpoint );
 
       //Check + fitting
-      XYZ fittingend = (endPoint - startPoint) * ((l + (fittinglength / 2)) / len);
+      XYZ fittingend = (endPoint - startPoint) 
+        * ((l + (fittinglength / 2)) / len);
 
       //New point after the fitting gap
       var endOfFitting = startPoint + fittingend;
 
-      Pipe pipe1 = Pipe.Create( _activeDoc.Document, systemtype, _pipeType.Id, levelId, endOfFitting, endPoint );
+      Pipe pipe1 = Pipe.Create( _activeDoc.Document, 
+        systemtype, _pipeType.Id, levelId, endOfFitting, 
+        endPoint );
 
       // Copy parameters from previous pipe to the following Pipe. 
       CopyParameters( pipe, pipe1 );
@@ -154,23 +164,25 @@ namespace SplitPipes
       {
         Connector pipeEndConn = FindConnector( pipe1, endPoint );
         pipeEndConn.ConnectTo( endConn );
-
       }
 
-      ICollection<Autodesk.Revit.DB.ElementId> deletedIdSet = _activeDoc.Document.Delete( segment.Id );
+      ICollection<ElementId> deletedIdSet 
+        = _activeDoc.Document.Delete( segment.Id );
+
       if( 0 == deletedIdSet.Count )
       {
         throw new Exception( "Deleting the selected elements in Revit failed." );
       }
 
-
-      if( UnitUtils.ConvertFromInternalUnits( pipe1.get_Parameter( BuiltInParameter.CURVE_ELEM_LENGTH ).AsDouble(), DisplayUnitType.DUT_MILLIMETERS ) > l )
+      if( UnitUtils.ConvertFromInternalUnits( 
+        pipe1.get_Parameter( BuiltInParameter.CURVE_ELEM_LENGTH ).AsDouble(), 
+        DisplayUnitType.DUT_MILLIMETERS ) > l )
       {
         SplitPipe( pipe1, _system, _activeDoc, _systemtype, _pipeType );
       }
     }
 
-    private static Connector FindConnector( Pipe pipe, Autodesk.Revit.DB.XYZ conXYZ )
+    private static Connector FindConnector( Pipe pipe, XYZ conXYZ )
     {
       ConnectorSet conns = pipe.ConnectorManager.Connectors;
       foreach( Connector conn in conns )
@@ -183,7 +195,7 @@ namespace SplitPipes
       return null;
     }
 
-    private static Connector FindConnectedTo( Pipe pipe, Autodesk.Revit.DB.XYZ conXYZ )
+    private static Connector FindConnectedTo( Pipe pipe, XYZ conXYZ )
     {
       Connector connItself = FindConnector( pipe, conXYZ );
       ConnectorSet connSet = connItself.AllRefs;
